@@ -23,15 +23,18 @@ export default function Rate() {
     if (!pending) return undefined;
     let left = false;
     const leave = () => { left = true; };
-    const back = () => { if (left) navigate('/thank-you', { state: pending.state }); };
+    const finish = () => navigate('/thank-you', { state: pending.state, replace: true });
+    const back = () => { if (left) finish(); };
     const onVisibility = () => (document.hidden ? leave() : back());
     document.addEventListener('visibilitychange', onVisibility);
     window.addEventListener('blur', leave);
     window.addEventListener('focus', back);
+    window.addEventListener('pageshow', back);
     return () => {
       document.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener('blur', leave);
       window.removeEventListener('focus', back);
+      window.removeEventListener('pageshow', back);
     };
   }, [pending, navigate]);
 
