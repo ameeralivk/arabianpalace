@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import Brand from '../components/Brand.jsx';
 import { ArrowRight, External, Utensils, Star, Headset, Clock, Instagram } from '../components/Icons.jsx';
-import { RESTAURANT } from '../config.js';
+import { RESTAURANT, whatsappFeedbackUrl } from '../config.js';
 
 function ActionCard({ to, href, icon, tone, title, subtitle, trailing }) {
   const content = (
@@ -34,7 +34,7 @@ export default function Landing() {
       <nav className="cards">
         <ActionCard to="/menu" icon={<Utensils />} tone="green" title="View Full Menu" subtitle="Explore all dishes, grills & desserts" trailing={<ArrowRight />} />
         <ActionCard to="/rate" icon={<Star />} tone="gold" title="Rate Your Experience" subtitle="How was your royal feast today?" trailing={<ArrowRight />} />
-        <ActionCard to="/rate?type=concern" icon={<Headset />} tone="green" title="Share a Concern" subtitle="Tell us how we can make your visit perfect" trailing={<ArrowRight />} />
+        <ActionCard href={whatsappFeedbackUrl({ message: 'Hello, I have a concern.' })} icon={<Headset />} tone="green" title="Share a Concern" subtitle="Tell us how we can make your visit perfect" trailing={<External />} />
         <ActionCard href={RESTAURANT.instagramUrl} icon={<Instagram />} tone="insta" title="Follow on Instagram" subtitle="Daily culinary stories & royal recipes" trailing={<External />} />
       </nav>
 

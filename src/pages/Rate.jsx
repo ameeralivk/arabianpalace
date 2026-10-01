@@ -1,29 +1,42 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Brand from '../components/Brand.jsx';
 import { ArrowLeft, ArrowRight, Star, User, Pin } from '../components/Icons.jsx';
-import { RESTAURANT } from '../config.js';
+import { RESTAURANT, whatsappFeedbackUrl } from '../config.js';
 
 const LABELS = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
-const TAGS = ['Delicious Food', 'Great Hospitality', 'Authentic Flavors', 'Cozy Ambiance'];
+const FACES = ['', '😞', '😕', '🙂', '😊', '🤩'];
 const MAX = 500;
 
 export default function Rate() {
   const navigate = useNavigate();
-  const [rating, setRating] = useState(5);
-  const [tags, setTags] = useState(['Delicious Food', 'Authentic Flavors']);
+  const [rating, setRating] = useState(0);
+  const [hover, setHover] = useState(0);
+  const shown = hover || rating;
   const [name, setName] = useState('');
   const [review, setReview] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const toggleTag = (t) => setTags((cur) => (cur.includes(t) ? cur.filter((x) => x !== t) : [...cur, t]));
+  // 3-5 stars: go straight to Google. 1-2 stars: reveal the private feedback form.
+  const selectRating = (n) => {
+    if (submitting) return;
+    setRating(n);
+    if (n >= 3) {
+      setSubmitting(true);
+      window.open(RESTAURANT.googleReviewUrl, '_blank', 'noopener,noreferrer');
+      navigate('/thank-you', { state: { rating: n } });
+    }
+  };
 
   const submit = (e) => {
     e.preventDefault();
+    if (!rating || rating > 2 || submitting) return;
     setSubmitting(true);
-    const feedback = { rating, tags, name: name.trim(), review: review.trim(), createdAt: new Date().toISOString() };
+    const feedback = { rating, name: name.trim(), review: review.trim(), createdAt: new Date().toISOString() };
     // TODO: send `feedback` to your backend API here.
     console.log('feedback', feedback);
-    navigate('/thank-you', { state: { name: feedback.name, rating } });
+    window.open(whatsappFeedbackUrl(feedback), '_blank', 'noopener,noreferrer');
+    navigate('/thank-you', { state: { name: feedback.name, rating, review: feedback.review } });
   };
 
   return (
@@ -32,41 +45,50 @@ export default function Rate() {
         <button className="iconbtn" onClick={() => navigate(-1)} aria-label="Back"><ArrowLeft /></button>
       </div>
 
+      <Brand />
+
       <form onSubmit={submit}>
         <h1 className="rate__title">How was your meal?</h1>
         <p className="rate__sub">We'd love to know what you enjoyed most about dining with us at {RESTAURANT.name} today.</p>
 
-        <div className="stars" role="radiogroup" aria-label="Rating">
+        <div className="rate__face" aria-hidden="true">{shown > 0 && <span key={shown}>{FACES[shown]}</span>}</div>
+        <div className="stars" role="radiogroup" aria-label="Rating" onMouseLeave={() => setHover(0)}>
           {[1, 2, 3, 4, 5].map((n) => (
-            <button type="button" key={n} className={n <= rating ? 'star on' : 'star'} onClick={() => setRating(n)} aria-label={`${n} star`}>
-              <Star filled={n <= rating} width={40} height={40} />
+            <button
+              type="button"
+              key={n}
+              className={n <= shown ? 'star on' : 'star'}
+              onClick={() => selectRating(n)}
+              onMouseEnter={() => setHover(n)}
+              onFocus={() => setHover(n)}
+              onBlur={() => setHover(0)}
+              aria-label={`${n} star`}
+            >
+              <Star filled={n <= shown} width={40} height={40} />
             </button>
           ))}
         </div>
-        <p className="rate__label"><span className="dot" /> {LABELS[rating]}</p>
+        <p className="rate__label" key={`l${shown}`}>{shown > 0 ? <><span className="dot" /> {LABELS[shown]}</> : <span className="rate__hint">Tap a star to rate</span>}</p>
 
-        <h3 className="field__title">What stood out?</h3>
-        <div className="chips">
-          {TAGS.map((t) => (
-            <button type="button" key={t} className={tags.includes(t) ? 'chip on' : 'chip'} onClick={() => toggleTag(t)}>{t}</button>
-          ))}
-        </div>
-
+        {rating > 0 && rating <= 2 && (
+          <>
         <div className="field__head"><label htmlFor="name">Your name</label><span>Optional</span></div>
         <div className="input">
           <User />
           <input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Tariq Al-Mansoor" />
         </div>
 
-        <div className="field__head"><label htmlFor="review">Share your review</label><span>Optional</span></div>
+        <div className="field__head"><label htmlFor="review">What went wrong?</label><span>Optional</span></div>
         <div className="textarea">
-          <textarea id="review" maxLength={MAX} value={review} onChange={(e) => setReview(e.target.value)} placeholder="What did you enjoy most? Tell us about the food, flavors, or ambiance..." />
+          <textarea id="review" maxLength={MAX} value={review} onChange={(e) => setReview(e.target.value)} placeholder="Tell us what went wrong so we can improve..." />
           <em>{review.length} / {MAX}</em>
         </div>
 
         <div className="ornament"><i /><span><Star width={16} height={16} /></span><i /></div>
 
-        <button className="submit" type="submit" disabled={submitting}>Submit Review <ArrowRight width={20} height={20} /></button>
+        <button className="submit" type="submit" disabled={!rating || submitting}>Submit <ArrowRight width={20} height={20} /></button>
+          </>
+        )}
         <p className="rate__note">Your review helps us share authentic Arabian hospitality</p>
         <p className="rate__addr"><Pin width={18} height={18} /> {RESTAURANT.address}</p>
       </form>
