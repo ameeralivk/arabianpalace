@@ -4,7 +4,7 @@ export const RESTAURANT = {
   hours: "Daily: 12:00 PM – 11:00 PM",
   instagramUrl:
     "https://www.instagram.com/arabianpalace_?utm_source=ig_web_button_share_sheet&stkn=ZDNlZDc0MzIxNw==",
-  googleReviewUrl: "https://share.google/WdoMj2bxOCk5HII2a",
+  googleReviewUrl: "https://www.google.com/search?q=arabian+palace+edappali+reveiw&ie=UTF-8#ebo=2",
   // Business WhatsApp number: digits only, with country code, no "+" or spaces (e.g. '919876543210').
   whatsappNumber: "919778364599",
   whatsappMessage:
