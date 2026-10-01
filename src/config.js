@@ -6,7 +6,7 @@ export const RESTAURANT = {
     "https://www.instagram.com/arabianpalace_?utm_source=ig_web_button_share_sheet&stkn=ZDNlZDc0MzIxNw==",
   googleReviewUrl: "https://www.google.com/search?q=arabian+palace+edappali+reveiw&ie=UTF-8#ebo=2",
   // Business WhatsApp number: digits only, with country code, no "+" or spaces (e.g. '919876543210').
-  whatsappNumber: "919778364599",
+  whatsappNumber: "9074969455",
   whatsappMessage:
     "Hello, I would like to share some feedback about my experience.",
 };
