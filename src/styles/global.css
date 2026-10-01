@@ -145,3 +145,10 @@ button { font: inherit; cursor: pointer; border: 0; background: none; color: inh
 /* Brand logo image */
 .brand__logo { display: block; width: min(100%, 420px); aspect-ratio: 1200 / 230; object-fit: cover; object-position: center 40%; margin: 0 auto; mix-blend-mode: multiply; }
 .brand__tag { margin-top: 14px; }
+
+/* Waiting for Google / WhatsApp */
+.rate__wait { display: grid; gap: 18px; justify-items: center; text-align: center; margin-top: 28px; }
+.rate__wait .submit { margin-top: 8px; }
+.rate__spinner { width: 44px; height: 44px; border-radius: 50%; border: 4px solid #d5f3e0; border-top-color: var(--green); animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .rate__spinner { animation-duration: 3s; } }

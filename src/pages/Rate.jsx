@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Brand from '../components/Brand.jsx';
 import { ArrowLeft, ArrowRight, Star, User, Pin } from '../components/Icons.jsx';
@@ -16,27 +16,48 @@ export default function Rate() {
   const [name, setName] = useState('');
   const [review, setReview] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [pending, setPending] = useState(null); // { url, kind, state } while the customer is on Google / WhatsApp
+
+  // Show the thank-you page only once the customer has left to Google/WhatsApp and come back.
+  useEffect(() => {
+    if (!pending) return undefined;
+    let left = false;
+    const leave = () => { left = true; };
+    const back = () => { if (left) navigate('/thank-you', { state: pending.state }); };
+    const onVisibility = () => (document.hidden ? leave() : back());
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('blur', leave);
+    window.addEventListener('focus', back);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('blur', leave);
+      window.removeEventListener('focus', back);
+    };
+  }, [pending, navigate]);
+
+  const openExternal = (url, kind, state) => {
+    setSubmitting(true);
+    setPending({ url, kind, state });
+    const w = window.open(url, '_blank');
+    if (w) w.opener = null;
+  };
 
   // 3-5 stars: go straight to Google. 1-2 stars: reveal the private feedback form.
   const selectRating = (n) => {
     if (submitting) return;
     setRating(n);
     if (n >= 3) {
-      setSubmitting(true);
-      window.open(RESTAURANT.googleReviewUrl, '_blank', 'noopener,noreferrer');
-      navigate('/thank-you', { state: { rating: n } });
+      openExternal(RESTAURANT.googleReviewUrl, 'google', { rating: n });
     }
   };
 
   const submit = (e) => {
     e.preventDefault();
     if (!rating || rating > 2 || submitting) return;
-    setSubmitting(true);
     const feedback = { rating, name: name.trim(), review: review.trim(), createdAt: new Date().toISOString() };
     // TODO: send `feedback` to your backend API here.
     console.log('feedback', feedback);
-    window.open(whatsappFeedbackUrl(feedback), '_blank', 'noopener,noreferrer');
-    navigate('/thank-you', { state: { name: feedback.name, rating, review: feedback.review } });
+    openExternal(whatsappFeedbackUrl(feedback), 'whatsapp', { name: feedback.name, rating, review: feedback.review });
   };
 
   return (
@@ -47,6 +68,16 @@ export default function Rate() {
 
       <Brand />
 
+      {pending ? (
+        <section className="rate__wait" role="status">
+          <div className="rate__spinner" aria-hidden="true" />
+          <h1 className="rate__title">{pending.kind === 'google' ? 'Finish your review on Google' : 'Send your message on WhatsApp'}</h1>
+          <p className="rate__sub">Once you're done, come back to this page and we'll show your confirmation.</p>
+          <a className="submit" href={pending.url} target="_blank" rel="noopener noreferrer">
+            {pending.kind === 'google' ? 'Open Google again' : 'Open WhatsApp again'}
+          </a>
+        </section>
+      ) : (
       <form onSubmit={submit}>
         <h1 className="rate__title">How was your meal?</h1>
         <p className="rate__sub">We'd love to know what you enjoyed most about dining with us at {RESTAURANT.name} today.</p>
@@ -92,6 +123,7 @@ export default function Rate() {
         <p className="rate__note">Your review helps us share authentic Arabian hospitality</p>
         <p className="rate__addr"><Pin width={18} height={18} /> {RESTAURANT.address}</p>
       </form>
+      )}
     </main>
   );
 }
